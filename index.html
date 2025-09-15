@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Media Analytics Dashboard - 3D Interactive</title>
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <!-- Protection Scripts -->
+    <script>
+        // Disable text selection
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+        });
+        
+        // Disable drag
+        document.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+        });
+        
+        // Disable copy/paste
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.keyCode === 67 || e.keyCode === 86 || e.keyCode === 85)) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Disable print
+        window.addEventListener('beforeprint', function(e) {
+            e.preventDefault();
+            alert('Printing is disabled for this content.');
+        });
+        
+        // Disable save page
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.keyCode === 83) {
+                e.preventDefault();
+                return false;
+            }
+        });
+        
+        // Clear console periodically
+        setInterval(function() {
+            console.clear();
+            console.log('%c⚠️ WARNING ⚠️', 'color: red; font-size: 20px; font-weight: bold;');
+            console.log('%cThis is a browser feature intended for developers.', 'color: red; font-size: 14px;');
+            console.log('%cUnauthorized access to this code is prohibited.', 'color: red; font-size: 12px;');
+        }, 2000);
+    </script>
+    
+    <style>
+        /* Disable text selection */
+        * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        
+        /* Disable image dragging */
+        img {
+            -webkit-user-drag: none;
+            -khtml-user-drag: none;
+            -moz-user-drag: none;
+            -o-user-drag: none;
+            user-drag: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-container">
+        <!-- Header -->
+        <header class="dashboard-header">
+            <div class="header-content">
+                <h1 class="dashboard-title">SARVANDANI - Media Analytics Dashboard</h1>
+                <div class="header-controls">
+                    <div class="time-selector">
+                        <select id="timeRange">
+                            <option value="7d">Last 7 Days</option>
+                            <option value="30d">Last 30 Days</option>
+                            <option value="90d">Last 90 Days</option>
+                            <option value="1y">Last Year</option>
+                        </select>
+                    </div>
+                    <button class="refresh-btn" id="refreshData">Refresh Data</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Dashboard Grid -->
+        <main class="dashboard-main">
+            <!-- France Map Section -->
+            <section class="france-map-section">
+                <div class="map-controls">
+                    <h2 class="map-title">France Audience Analytics</h2>
+                    <div class="map-buttons">
+                        <button class="control-btn" id="showHeatmap">Heatmap</button>
+                        <button class="control-btn" id="showMarkers">Markers</button>
+                        <button class="control-btn" id="satelliteView">Satellite</button>
+                    </div>
+                </div>
+                <div class="map-layout">
+                    <div class="map-container">
+                        <div id="franceMap"></div>
+                    </div>
+                    <div class="map-sidebar">
+                        <div class="map-stats-card">
+                            <h3>Map Statistics</h3>
+                            <div class="map-stats">
+                                <div class="stat-item">
+                                    <span class="stat-value" id="franceViewers">450K</span>
+                                    <span class="stat-label">French Viewers</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value" id="franceRegions">13</span>
+                                    <span class="stat-label">Active Regions</span>
+                                </div>
+                                <div class="stat-item">
+                                    <span class="stat-value" id="franceEngagement">8.2</span>
+                                    <span class="stat-label">Engagement Score</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="sidebar-card">
+                            <h3>Regional Insights</h3>
+                            <div class="insight-item">
+                                <span class="region-name">Île-de-France</span>
+                                <span class="region-value">45.2%</span>
+                            </div>
+                            <div class="insight-item">
+                                <span class="region-name">Auvergne-Rhône-Alpes</span>
+                                <span class="region-value">18.7%</span>
+                            </div>
+                            <div class="insight-item">
+                                <span class="region-name">Provence-Alpes-Côte d'Azur</span>
+                                <span class="region-value">12.3%</span>
+                            </div>
+                            <div class="insight-item">
+                                <span class="region-name">Nouvelle-Aquitaine</span>
+                                <span class="region-value">8.9%</span>
+                            </div>
+                            <div class="insight-item">
+                                <span class="region-name">Occitanie</span>
+                                <span class="region-value">6.8%</span>
+                            </div>
+                            <div class="insight-item">
+                                <span class="region-name">Others</span>
+                                <span class="region-value">8.1%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Analytics Cards Grid -->
+            <section class="analytics-grid">
+                <!-- Engagement Metrics -->
+                <div class="analytics-card engagement-card">
+                    <div class="card-header">
+                        <h3>Engagement Metrics</h3>
+                        <div class="card-icon">📊</div>
+                    </div>
+                    <div class="card-content">
+                        <div class="metric-row">
+                            <div class="metric">
+                                <span class="metric-value" id="avgWatchTime">24:35</span>
+                                <span class="metric-label">Avg Watch Time</span>
+                                <span class="metric-change positive">+12%</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-value" id="completionRate">78%</span>
+                                <span class="metric-label">Completion Rate</span>
+                                <span class="metric-change positive">+5%</span>
+                            </div>
+                        </div>
+                        <div class="metric-row">
+                            <div class="metric">
+                                <span class="metric-value" id="engagementScore">8.7</span>
+                                <span class="metric-label">Engagement Score</span>
+                                <span class="metric-change positive">+3%</span>
+                            </div>
+                            <div class="metric">
+                                <span class="metric-value" id="bounceRate">22%</span>
+                                <span class="metric-label">Bounce Rate</span>
+                                <span class="metric-change negative">-8%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Content Performance -->
+                <div class="analytics-card content-card">
+                    <div class="card-header">
+                        <h3>Content Performance</h3>
+                        <div class="card-icon">🎬</div>
+                    </div>
+                    <div class="card-content">
+                        <div class="content-list">
+                            <div class="content-item">
+                                <div class="content-info">
+                                    <span class="content-title">Documentary Series</span>
+                                    <span class="content-views">1.2M views</span>
+                                </div>
+                                <div class="content-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 85%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="content-item">
+                                <div class="content-info">
+                                    <span class="content-title">News Segments</span>
+                                    <span class="content-views">890K views</span>
+                                </div>
+                                <div class="content-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 72%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="content-item">
+                                <div class="content-info">
+                                    <span class="content-title">Live Events</span>
+                                    <span class="content-views">650K views</span>
+                                </div>
+                                <div class="content-progress">
+                                    <div class="progress-bar">
+                                        <div class="progress-fill" style="width: 58%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Audience Demographics -->
+                <div class="analytics-card demographics-card">
+                    <div class="card-header">
+                        <h3>Audience Demographics</h3>
+                        <div class="card-icon">👥</div>
+                    </div>
+                    <div class="card-content">
+                        <div class="demographics-chart">
+                            <canvas id="demographicsChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Real-time Analytics -->
+                <div class="analytics-card realtime-card">
+                    <div class="card-header">
+                        <h3>Real-time Analytics</h3>
+                        <div class="card-icon">⚡</div>
+                    </div>
+                    <div class="card-content">
+                        <div class="realtime-metrics">
+                            <div class="realtime-item">
+                                <span class="realtime-value" id="currentViewers">1,247</span>
+                                <span class="realtime-label">Currently Watching</span>
+                            </div>
+                            <div class="realtime-item">
+                                <span class="realtime-value" id="newSubscribers">23</span>
+                                <span class="realtime-label">New Subscribers (24h)</span>
+                            </div>
+                            <div class="realtime-item">
+                                <span class="realtime-value" id="socialShares">156</span>
+                                <span class="realtime-label">Social Shares (24h)</span>
+                            </div>
+                        </div>
+                        <div class="realtime-chart">
+                            <canvas id="realtimeChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Device Analytics -->
+                <div class="analytics-card device-card">
+                    <div class="card-header">
+                        <h3>Device Analytics</h3>
+                        <div class="card-icon">📱</div>
+                    </div>
+                    <div class="card-content">
+                        <div class="device-chart">
+                            <canvas id="deviceChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Revenue Analytics -->
+                <div class="analytics-card revenue-card">
+                    <div class="card-header">
+                        <h3>Revenue Analytics</h3>
+                        <div class="card-icon">💰</div>
+                    </div>
+                    <div class="card-content">
+                        <div class="revenue-metrics">
+                            <div class="revenue-item">
+                                <span class="revenue-value" id="monthlyRevenue">$45,230</span>
+                                <span class="revenue-label">Monthly Revenue</span>
+                                <span class="revenue-change positive">+18%</span>
+                            </div>
+                            <div class="revenue-item">
+                                <span class="revenue-value" id="adRevenue">$28,450</span>
+                                <span class="revenue-label">Ad Revenue</span>
+                                <span class="revenue-change positive">+12%</span>
+                            </div>
+                            <div class="revenue-item">
+                                <span class="revenue-value" id="subscriptionRevenue">$16,780</span>
+                                <span class="revenue-label">Subscription Revenue</span>
+                                <span class="revenue-change positive">+25%</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+
+    <!-- Protected JavaScript -->
+    <script src="script.js"></script>
+    
+    <!-- Additional Protection Script -->
+    <script>
+        // Detect and prevent developer tools
+        let devtools = {open: false, orientation: null};
+        const threshold = 160;
+        
+        setInterval(function() {
+            if (window.outerHeight - window.innerHeight > threshold || 
+                window.outerWidth - window.innerWidth > threshold) {
+                if (!devtools.open) {
+                    devtools.open = true;
+                    document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#000;color:#fff;font-family:Arial;"><div style="text-align:center;"><h1>⚠️ Developer Tools Detected</h1><p>Please close developer tools to continue using this application.</p></div></div>';
+                }
+            } else {
+                devtools.open = false;
+            }
+        }, 500);
+        
+        // Disable common debugging methods
+        (function() {
+            let devtools = /./;
+            devtools.toString = function() {
+                document.body.innerHTML = '<div style="display:flex;justify-content:center;align-items:center;height:100vh;background:#000;color:#fff;font-family:Arial;"><div style="text-align:center;"><h1>⚠️ Debugging Detected</h1><p>Please close developer tools to continue.</p></div></div>';
+                return '';
+            }
+        })();
+    </script>
+</body>
+</html>
